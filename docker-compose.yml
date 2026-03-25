@@ -1,0 +1,115 @@
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: revision_db
+    environment:
+      POSTGRES_DB: revision_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - appnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d revision_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service principal Flask (Frontend)
+  main-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+    container_name: revision_main
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=revision_app
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - QUIZ_SERVICE_URL=http://quiz-service:5001
+      - API_SERVICE_URL=http://api-service:5002
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - appnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service de Quiz distribué
+  quiz-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.quiz
+    container_name: revision_quiz
+    ports:
+      - "5001:5001"
+    networks:
+      - appnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service API de contenu
+  api-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.content
+    container_name: revision_api
+    ports:
+      - "5002:5002"
+    networks:
+      - appnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service de monitoring réseau (bonus pour démonstration)
+  network-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: revision_monitor
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=revision_app
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+    ports:
+      - "5003:5003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - appnet
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  appnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

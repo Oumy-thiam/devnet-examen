@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - {{ subject|title }} - DEVNET</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 900px;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+        .header h1 {
+            color: #764ba2;
+            font-weight: bold;
+            font-size: 2.5rem;
+        }
+        .subject-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .mathematiques { color: #e74c3c; }
+        .philosophie { color: #9b59b6; }
+        .litterature { color: #3498db; }
+        .histoire_geo { color: #27ae60; }
+        .culture_generale { color: #f39c12; }
+        
+        .quiz-progress {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 10px;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .option-card {
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option-card:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .option-card.selected {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            border-width: 3px;
+        }
+        
+        .option-card.correct {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: #27ae60;
+        }
+        
+        .option-card.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+        
+        .timer-display {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .timer-warning {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: white;
+            color: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .score-excellent { color: #27ae60; }
+        .score-good { color: #3498db; }
+        .score-average { color: #f39c12; }
+        .score-poor { color: #e74c3c; }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #764ba2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="quiz-container">
+            <a href="/dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            
+            <div class="header">
+                <div class="subject-icon {{ subject }}"></div>
+                <h1>📝 Quiz - {{ subject|title }}</h1>
+                <p class="text-muted">Niveau: {% if session.level == 'college' %}Collège{% else %}Lycée{% endif %}</p>
+            </div>
+
+            {% if quiz_data.error %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> {{ quiz_data.error }}
+                </div>
+            {% else %}
+                <div class="quiz-progress">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-tasks"></i> Progression</h5>
+                            <p>Question <span id="current-question">1</span> / <span id="total-questions">{{ quiz_data.total_questions }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="progress">
+                                <div class="progress-bar-custom" id="progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timer-display" id="timer-display">
+                    <h5><i class="fas fa-clock"></i> Temps restant</h5>
+                    <h3 id="timer">10:00</h3>
+                </div>
+
+                <div id="quiz-content">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <h5>Chargement du quiz...</h5>
+                        <p class="text-muted">Veuillez patienter pendant que nous récupérons les questions</p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary btn-lg" id="submit-btn" onclick="submitQuiz()" style="display: none;">
+                        <i class="fas fa-paper-plane"></i> Soumettre les réponses
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let timeRemaining = 600; // 10 minutes
+        let timerInterval;
+        let quizData = {{ quiz_data|tojson }};
+
+        function startQuiz() {
+            if (quizData && quizData.questions) {
+                displayQuestion(0);
+                startTimer();
+                updateProgress();
+            }
+        }
+
+        function displayQuestion(index) {
+            const question = quizData.questions[index];
+            const contentDiv = document.getElementById('quiz-content');
+            
+            contentDiv.innerHTML = `
+                <div class="question-card fade-in">
+                    <h3><i class="fas fa-question-circle"></i> Question ${index + 1}</h3>
+                    <p class="lead">${question.question}</p>
+                    
+                    <div class="options-container">
+                        ${question.options.map(function(option, optionIndex) {
+                            return `
+                                <div class="option-card" onclick="selectOption(${index}, ${optionIndex})" id="option-${index}-${optionIndex}">
+                                    <div class="form-check">
+                                        <input type="radio" name="question-${index}" value="${optionIndex}" class="form-check-input" id="radio-${index}-${optionIndex}">
+                                        <label class="form-check-label" for="radio-${index}-${optionIndex}">
+                                            <strong>${String.fromCharCode(65 + optionIndex)}.</strong> ${option}
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        ${index > 0 ? '<button class="btn btn-outline-primary" onclick="previousQuestion()"><i class="fas fa-arrow-left"></i> Précédent</button>' : ''}
+                        ${index < quizData.questions.length - 1 ? '<button class="btn btn-primary" onclick="nextQuestion()">Suivant <i class="fas fa-arrow-right"></i></button>' : ''}
+                        ${index === quizData.questions.length - 1 ? '<button class="btn btn-success" onclick="showSummary()"><i class="fas fa-check"></i> Voir le résumé</button>' : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Restaurer la sélection précédente
+            if (userAnswers[index] !== undefined) {
+                selectOption(index, userAnswers[index]);
+            }
+            
+            updateProgress();
+        }
+
+        function selectOption(questionIndex, optionIndex) {
+            // Désélectionner toutes les options pour cette question
+            for (let i = 0; i < quizData.questions[questionIndex].options.length; i++) {
+                const optionCard = document.getElementById(`option-${questionIndex}-${i}`);
+                const radioInput = document.getElementById(`radio-${questionIndex}-${i}`);
+                optionCard.classList.remove('selected');
+                radioInput.checked = false;
+            }
+            
+            // Sélectionner l'option choisie
+            const selectedCard = document.getElementById(`option-${questionIndex}-${optionIndex}`);
+            const selectedRadio = document.getElementById(`radio-${questionIndex}-${optionIndex}`);
+            selectedCard.classList.add('selected');
+            selectedRadio.checked = true;
+            
+            // Sauvegarder la réponse
+            userAnswers[questionIndex] = optionIndex;
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.questions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / quizData.questions.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(function() {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 60) {
+                    document.getElementById('timer-display').classList.add('timer-warning');
+                }
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function showSummary() {
+            const contentDiv = document.getElementById('quiz-content');
+            let summaryHTML = '<div class="result-card fade-in"><h3><i class="fas fa-list"></i> Résumé de vos réponses</h3>';
+            
+            for (let i = 0; i < quizData.questions.length; i++) {
+                const question = quizData.questions[i];
+                const answer = userAnswers[i];
+                const answerText = answer !== undefined ? String.fromCharCode(65 + answer) : 'Non répondue';
+                
+                summaryHTML += `
+                    <div class="mb-3 p-3 border rounded">
+                        <strong>Question ${i + 1}:</strong> ${question.question}<br>
+                        <small>Votre réponse: ${answerText}</small>
+                    </div>
+                `;
+            }
+            
+            summaryHTML += `
+                <button class="btn btn-primary btn-lg" onclick="submitQuiz()">
+                    <i class="fas fa-paper-plane"></i> Soumettre le quiz
+                </button>
+            </div>`;
+            
+            contentDiv.innerHTML = summaryHTML;
+            document.getElementById('submit-btn').style.display = 'inline-block';
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            
+            // Vérifier que toutes les questions ont une réponse
+            for (let i = 0; i < quizData.questions.length; i++) {
+                if (userAnswers[i] === undefined) {
+                    userAnswers[i] = -1; // Marquer comme non répondue
+                }
+            }
+            
+            // Envoyer les réponses au serveur
+            const formData = new FormData();
+            formData.append('subject', '{{ subject }}');
+            for (let i = 0; i < userAnswers.length; i++) {
+                formData.append('answers', userAnswers[i]);
+            }
+            
+            fetch('/submit_quiz', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                displayResults(data);
+            })
+            .catch(function(error) {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de la soumission du quiz.');
+            });
+        }
+
+        function displayResults(results) {
+            const contentDiv = document.getElementById('quiz-content');
+            const scoreClass = results.percentage >= 80 ? 'score-excellent' : 
+                            results.percentage >= 60 ? 'score-good' : 
+                            results.percentage >= 40 ? 'score-average' : 'score-poor';
+            
+            let resultsHTML = `
+                <div class="result-card fade-in">
+                    <h3><i class="fas fa-trophy"></i> Résultats du Quiz</h3>
+                    <div class="score-display ${scoreClass}">
+                        ${results.score}/${results.total_questions}
+                    </div>
+                    <h4>${results.percentage}%</h4>
+                    <p class="lead">Note: <strong>${results.grade}</strong></p>
+                    
+                    <div class="mt-4">
+                        <h5><i class="fas fa-check-circle"></i> Réponses détaillées</h5>
+            `;
+            
+            if (results.results) {
+                results.results.forEach(function(result, index) {
+                    const isCorrect = result.is_correct;
+                    const correctClass = isCorrect ? 'text-success' : 'text-danger';
+                    const icon = isCorrect ? 'fa-check-circle' : 'fa-times-circle';
+                    
+                    resultsHTML += `
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Question ${index + 1}:</strong> ${result.question}<br>
+                                    <small class="${correctClass}">
+                                        <i class="fas ${icon}"></i> 
+                                        ${isCorrect ? 'Correct' : 'Incorrect'}
+                                    </small>
+                                </div>
+                                ${!isCorrect ? `<small class="text-muted">Bonne réponse: ${String.fromCharCode(65 + result.correct_answer)}</small>` : ''}
+                            </div>
+                            ${result.explanation ? `<div class="mt-2 p-2 bg-light rounded"><small><strong>Explication:</strong> ${result.explanation}</small></div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            resultsHTML += `
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/quiz/{{ subject }}" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Recommencer le quiz
+                        </a>
+                        <a href="/revision/{{ subject }}" class="btn btn-outline-primary">
+                            <i class="fas fa-book"></i> Réviser encore
+                        </a>
+                        <a href="/dashboard" class="btn btn-success">
+                            <i class="fas fa-home"></i> Retour au tableau de bord
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            contentDiv.innerHTML = resultsHTML;
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+        }
+
+        // Démarrer le quiz au chargement de la page
+        window.addEventListener('load', function() {
+            setTimeout(startQuiz, 1000);
+        });
+    </script>
+</body>
+</html>

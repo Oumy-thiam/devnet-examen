@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # Service principal pour construire l'image
+  main-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+      tags:
+        - votre-username-dockerhub/devnet-examen:latest
+        - votre-username-dockerhub/devnet-examen:v1.0.0
+    image: votre-username-dockerhub/devnet-examen:latest
+    container_name: devnet_main_build
+    environment:
+      - FLASK_ENV=production
+      - DB_HOST=build_db
+      - DB_NAME=devnet
+      - DB_USER=devnet_user
+      - DB_PASSWORD=devnet_password
+      - QUIZ_SERVICE_URL=http://quiz-service:5001
+      - API_SERVICE_URL=http://api-service:5002
+    ports:
+      - "5000:5000"
+    networks:
+      - build_network
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Service quiz pour construire l'image
+  quiz-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.quiz
+      tags:
+        - votre-username-dockerhub/devnet-examen-quiz:latest
+        - votre-username-dockerhub/devnet-examen-quiz:v1.0.0
+    image: votre-username-dockerhub/devnet-examen-quiz:latest
+    container_name: devnet_quiz_build
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - build_network
+    restart: unless-stopped
+
+  # Service API pour construire l'image
+  api-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.content
+      tags:
+        - votre-username-dockerhub/devnet-examen-api:latest
+        - votre-username-dockerhub/devnet-examen-api:v1.0.0
+    image: votre-username-dockerhub/devnet-examen-api:latest
+    container_name: devnet_api_build
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - build_network
+    restart: unless-stopped
+
+  # Service monitoring pour construire l'image
+  network-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+      tags:
+        - votre-username-dockerhub/devnet-examen-monitor:latest
+        - votre-username-dockerhub/devnet-examen-monitor:v1.0.0
+    image: votre-username-dockerhub/devnet-examen-monitor:latest
+    container_name: devnet_monitor_build
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - build_network
+    restart: unless-stopped
+
+  # Base de données pour les tests
+  db:
+    image: postgres:15
+    container_name: build_db
+    environment:
+      POSTGRES_DB: devnet
+      POSTGRES_USER: devnet_user
+      POSTGRES_PASSWORD: devnet_password
+    networks:
+      - build_network
+    restart: unless-stopped
+
+networks:
+  build_network:
+    driver: bridge

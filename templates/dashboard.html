@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - DEVNET Révision</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 1200px;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+        .header h1 {
+            color: #764ba2;
+            font-weight: bold;
+            font-size: 2.5rem;
+        }
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .subject-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+        .subject-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .mathematiques { color: #e74c3c; }
+        .philosophie { color: #9b59b6; }
+        .litterature { color: #3498db; }
+        .histoire_geo { color: #27ae60; }
+        .culture_generale { color: #f39c12; }
+        
+        .btn-subject {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        .btn-subject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+        .stats-card {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .stats-card h5 {
+            color: #764ba2;
+            font-weight: bold;
+        }
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e1e5e9;
+        }
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: white;
+            color: #764ba2;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="dashboard-container">
+            <a href="/logout" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+            
+            <div class="header">
+                <h1>📚 Tableau de Bord</h1>
+                <p class="text-muted">Bienvenue sur votre espace de révision personnel</p>
+            </div>
+
+            <div class="user-info">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3><i class="fas fa-user"></i> {{ session.username }}</h3>
+                        <p><i class="fas fa-graduation-cap"></i> Niveau: 
+                           {% if session.level == 'college' %}Collège{% else %}Lycée{% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <h5><i class="fas fa-calendar"></i> 18/03/2026</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="mb-4"><i class="fas fa-book"></i> Mes Matières</h4>
+                    
+                    {% set subjects_info = {
+                        'mathematiques': {'icon': '📐', 'color': 'mathematiques', 'title': 'Mathématiques', 'desc': 'Algèbre, géométrie, fonctions, trigonométrie'},
+                        'philosophie': {'icon': '🤔', 'color': 'philosophie', 'title': 'Philosophie', 'desc': 'Conscience, morale, politique, existence'},
+                        'litterature': {'icon': '📖', 'color': 'litterature', 'title': 'Littérature', 'desc': 'Genres littéraires, mouvements, auteurs, œuvres'},
+                        'histoire_geo': {'icon': '🌍', 'color': 'histoire_geo', 'title': 'Histoire-Géographie', 'desc': 'Événements historiques, géographie mondiale'},
+                        'culture_generale': {'icon': '🎯', 'color': 'culture_generale', 'title': 'Culture Générale', 'desc': 'Sciences, arts, civilisations, découvertes'}
+                    } %}
+                    
+                    {% for subject in user_subjects %}
+                        {% set subject_info = subjects_info[subject] %}
+                        <div class="subject-card">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center">
+                                    <div class="subject-icon {{ subject_info.color }}">{{ subject_info.icon }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>{{ subject_info.title }}</h5>
+                                    <p class="text-muted">{{ subject_info.desc }}</p>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <a href="/revision/{{ subject }}" class="btn btn-subject">
+                                        <i class="fas fa-book-open"></i> Réviser
+                                    </a>
+                                    <a href="/quiz/{{ subject }}" class="btn btn-subject">
+                                        <i class="fas fa-question-circle"></i> Quiz
+                                    </a>
+                                    <a href="/other_questions/{{ subject }}" class="btn btn-subject">
+                                        <i class="fas fa-comments"></i> Questions
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if user_subjects|length == 0 %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i> Vous n'avez sélectionné aucune matière.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <h4 class="mb-4"><i class="fas fa-chart-line"></i> Mes Statistiques</h4>
+                    
+                    <div class="stats-card">
+                        <h5><i class="fas fa-trophy"></i> Quiz Complétés</h5>
+                        {% set total_quiz = user_stats.quiz_stats|length if user_stats.quiz_stats else 0 %}
+                        <h2 class="text-primary">{{ total_quiz }}</h2>
+                        <p>quiz terminés</p>
+                    </div>
+
+                    <div class="stats-card">
+                        <h5><i class="fas fa-clock"></i> Temps de Révision</h5>
+                        {% set total_time = user_stats.revision_stats|sum(attribute='total_time') if user_stats.revision_stats else 0 %}
+                        <h2 class="text-success">{{ total_time or 0 }}</h2>
+                        <p>minutes au total</p>
+                    </div>
+
+                    <div class="stats-card">
+                        <h5><i class="fas fa-percentage"></i> Score Moyen</h5>
+                        {% if user_stats.quiz_stats %}
+                            {% set total_score = user_stats.quiz_stats|sum(attribute='avg_score') %}
+                            {% set avg_score = (total_score / user_stats.quiz_stats|length)|round(1) %}
+                            <h2 class="text-warning">{{ avg_score }}%</h2>
+                        {% else %}
+                            <h2 class="text-muted">-</h2>
+                        {% endif %}
+                        <p>de réussite</p>
+                    </div>
+
+                    <div class="stats-card">
+                        <h5><i class="fas fa-fire"></i> Séries Actuelles</h5>
+                        <div class="progress mb-2">
+                            <div class="progress-bar" style="width: 75%"></div>
+                        </div>
+                        <p class="mb-0">3 jours consécutifs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animation au chargement
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.subject-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'fadeInUp 0.5s ease-out';
+                }, index * 100);
+            });
+        });
+
+        // Animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

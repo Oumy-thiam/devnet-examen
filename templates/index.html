@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application de Révision - DEVNET</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-top: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            color: #764ba2;
+            font-weight: bold;
+            font-size: 2.5rem;
+        }
+        .logo p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e1e5e9;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .subject-checkbox {
+            margin: 10px 0;
+        }
+        .subject-checkbox .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        .subject-checkbox .form-check-label {
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .features {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+        }
+        .features h5 {
+            color: #764ba2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="login-container">
+                    <div class="logo">
+                        <h1>📚 DEVNET Révision</h1>
+                        <p>Application de révision pour lycéens et collégiens</p>
+                    </div>
+
+                    <form action="/register" method="POST">
+                        <div class="mb-4">
+                            <label for="username" class="form-label fw-bold">Nom complet</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   placeholder="Entrez votre nom et prénom" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-bold">Email (optionnel)</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="votre.email@example.com">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="level" class="form-label fw-bold">Niveau d'études</label>
+                            <select class="form-select" id="level" name="level" required>
+                                <option value="">Choisissez votre niveau</option>
+                                <option value="college">Collège</option>
+                                <option value="lycee">Lycée</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Matières à réviser</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="subject-checkbox">
+                                        <input type="checkbox" class="form-check-input" id="mathematiques" 
+                                               name="subjects" value="mathematiques">
+                                        <label class="form-check-label" for="mathematiques">
+                                            📐 Mathématiques
+                                        </label>
+                                    </div>
+                                    <div class="subject-checkbox">
+                                        <input type="checkbox" class="form-check-input" id="philosophie" 
+                                               name="subjects" value="philosophie">
+                                        <label class="form-check-label" for="philosophie">
+                                            🤔 Philosophie
+                                        </label>
+                                    </div>
+                                    <div class="subject-checkbox">
+                                        <input type="checkbox" class="form-check-input" id="litterature" 
+                                               name="subjects" value="litterature">
+                                        <label class="form-check-label" for="litterature">
+                                            📖 Littérature
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="subject-checkbox">
+                                        <input type="checkbox" class="form-check-input" id="histoire_geo" 
+                                               name="subjects" value="histoire_geo">
+                                        <label class="form-check-label" for="histoire_geo">
+                                            🌍 Histoire-Géographie
+                                        </label>
+                                    </div>
+                                    <div class="subject-checkbox">
+                                        <input type="checkbox" class="form-check-input" id="culture_generale" 
+                                               name="subjects" value="culture_generale">
+                                        <label class="form-check-label" for="culture_generale">
+                                            🎯 Culture Générale
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Commencer mes révisions
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="features">
+                        <h5>🚀 Fonctionnalités disponibles</h5>
+                        <div class="row text-start">
+                            <div class="col-md-6">
+                                <p>✅ Contenus de révision détaillés</p>
+                                <p>✅ Quiz QCM interactifs</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>✅ Suivi des progrès</p>
+                                <p>✅ Architecture réseau distribuée</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Validation du formulaire
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const subjects = document.querySelectorAll('input[name="subjects"]:checked');
+            if (subjects.length === 0) {
+                e.preventDefault();
+                alert('Veuillez sélectionner au moins une matière à réviser');
+                return false;
+            }
+        });
+
+        // Animation au chargement
+        window.addEventListener('load', function() {
+            document.querySelector('.login-container').style.animation = 'fadeInUp 0.8s ease-out';
+        });
+
+        // Animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

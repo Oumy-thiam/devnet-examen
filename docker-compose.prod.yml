@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:15
+    container_name: devnet_db_prod
+    environment:
+      POSTGRES_DB: devnet_prod
+      POSTGRES_USER: devnet_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - devnet_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devnet_user -d devnet_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Application principale
+  main-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+    container_name: devnet_main_prod
+    environment:
+      - FLASK_ENV=production
+      - DB_HOST=db
+      - DB_NAME=devnet_prod
+      - DB_USER=devnet_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUIZ_SERVICE_URL=http://quiz-service:5001
+      - API_SERVICE_URL=http://api-service:5002
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - devnet_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service de quiz
+  quiz-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.quiz
+    container_name: devnet_quiz_prod
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - devnet_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service API de contenu
+  api-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.content
+    container_name: devnet_api_prod
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - devnet_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service de monitoring
+  network-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: devnet_monitor_prod
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - devnet_network
+    restart: unless-stopped
+
+  # Reverse Proxy Nginx (Optionnel)
+  nginx:
+    image: nginx:alpine
+    container_name: devnet_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - main-app
+    networks:
+      - devnet_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  devnet_network:
+    driver: bridge
